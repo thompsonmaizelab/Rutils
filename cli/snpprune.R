@@ -147,7 +147,35 @@ rownames(geno_mat) <- gdsfmt::read.gdsn(    # extract row (sample) names
 if (verbose) { print("... Done!"); flush.console(); }
 
 ################################################################################
+# extract marker data positions along chromosome
+if (verbose) { print("Building marker position data.frame..."); flush.console(); }
+mkr_name_vec <- gdsfmt::read.gdsn(          # extract marker names
+    gdsfmt::index.gdsn(                     # get internal object reference
+        geno_gds,                           # genotype file
+        "snp.rs.id"                         # get "snp.rs.id" field
+    )
+)[mkr_ix]                                   # subset using marker indices
+mkr_chr_vec <- gdsfmt::read.gdsn(           # extract chromosome names
+    gdsfmt::index.gdsn(                     # get internal object reference
+        geno_gds,                           # genotype file
+        "snp.chromosome"                    # get "snp.chromosome" field
+    )
+)[mkr_ix]                                   # subset using marker indices
+mkr_pos_vec <- gdsfmt::read.gdsn(           # extract marker positions
+    gdsfmt::index.gdsn(                     # get internal object reference
+        geno_gds,                           # genotype file
+        "snp.position"                      # get "snp.position" field
+    )
+)[mkr_ix]                                   # subset using marker indices
+mkr_pos_df <- data.frame(
+    Name = mkr_name_vec,
+    Chromosome = as.integer(mkr_chr_vec),
+    Position = as.integer(mkr_pos_vec)
+)
+if (verbose) { print("... Done!"); flush.console(); }
+
+################################################################################
 # save genotype matrix to file
 if (verbose) { print("Saving genotype matrix..."); flush.console(); }
-save(geno_mat, file=outRdata)
+save(geno_mat, mkr_pos_df, file=outRdata)
 if (verbose) { print("... Done!"); flush.console(); }
